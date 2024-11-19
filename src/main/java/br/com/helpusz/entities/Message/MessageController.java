@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,9 +23,18 @@ public class MessageController {
   @Autowired
   private MessageService messageService;
 
+  @Autowired
+  private SimpMessagingTemplate messagingTemplate;
+
   @PostMapping("/create")
   public Message createMessage(@RequestBody Message message) {
     return messageService.createMessage(message);
+  }
+
+  @MessageMapping("/sendMessage") 
+  public void sendMessage(Message message) {
+    messageService.createMessage(message);
+    messagingTemplate.convertAndSend("/topic/" + message.getChatRoomId(), message);
   }
 
   @GetMapping("/chatRoom/{chatRoomId}")
